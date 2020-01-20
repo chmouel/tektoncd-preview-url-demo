@@ -17,7 +17,7 @@ word=$(randomword)
 branch=pull-branch-${word}
 git checkout -b $branch master
 
-echo $word > data/random.txt
+echo $word > html/random.txt
 
 cat > ${TMP} <<EOF
 Add random word $word

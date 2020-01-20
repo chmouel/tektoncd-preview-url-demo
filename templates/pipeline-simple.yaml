@@ -5,15 +5,25 @@ metadata:
 spec:
   inputs:
     resources:
-      - name: source-repo
-        type: git
+    - name: source-repo
+      type: git
+    - name: pr
+      type: pullRequest
+  outputs:
+    resources:
+      - name: pr
+        type: pullRequest
   steps:
     - name: hello
       image: registry.access.redhat.com/ubi8/ubi-minimal:latest
-      workingdir: /volume
       script: |
-        #!/bin/sh -e
-        echo HELLO WORLD
+        #!/usr/bin/env bash
+        set -e
+
+        mkdir -p $(outputs.resources.pr.path)
+        cp -r $(inputs.resources.pr.path)/* $(outputs.resources.pr.path)/
+
+        echo "Hello from pullRequest" > $(outputs.resources.pr.path)/comments/new.json
 
 ---
 apiVersion: tekton.dev/v1alpha1
@@ -22,13 +32,20 @@ metadata:
   name: simple
 spec:
   resources:
+    - name: pr
+      type: pullRequest
     - name: source-repo
       type: git
   tasks:
-  - name: hello-world
+  - name: check-code
     taskRef:
       name: hello-world
     resources:
       inputs:
         - name: source-repo
           resource: source-repo
+        - name: pr
+          resource: pr
+      outputs:
+        - name: pr
+          resource: pr
