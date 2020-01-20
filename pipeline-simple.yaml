@@ -1,0 +1,34 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: hello-world
+spec:
+  inputs:
+    resources:
+      - name: source-repo
+        type: git
+  steps:
+    - name: hello
+      image: registry.access.redhat.com/ubi8/ubi-minimal:latest
+      workingdir: /volume
+      script: |
+        #!/bin/sh -e
+        echo HELLO WORLD
+
+---
+apiVersion: tekton.dev/v1alpha1
+kind: Pipeline
+metadata:
+  name: simple
+spec:
+  resources:
+    - name: source-repo
+      type: git
+  tasks:
+  - name: hello-world
+    taskRef:
+      name: hello-world
+    resources:
+      inputs:
+        - name: source-repo
+          resource: source-repo
