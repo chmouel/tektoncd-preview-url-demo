@@ -34,16 +34,20 @@ metadata:
 spec:
   inputs:
     resources:
-    - name: image
-      type: image
+    - name: source
+      type: git
     - name: pr
       type: pullRequest
   steps:
   - name: deploy
+    workingDir: $(inputs.resources.source.path)
     image: quay.io/openshift/origin-cli:latest
     script: |
       #!/usr/bin/env bash
-      set -x
+      set -xe
+      sha=$(python -c "import json, sys;r = json.loads(sys.stdin.read());print(r['Sha'][1:8])" < $(inputs.resources.pr.path)/pr.json)
+      oc delete -f <(sed "s/%SHA%/${sha}/g" deployment.yaml) 2>/dev/null || true
+      oc create -f <(sed "s/%SHA%/${sha}/g" deployment.yaml)
       sleep infinity
 ---
 apiVersion: tekton.dev/v1alpha1
@@ -73,15 +77,15 @@ spec:
         - name: image
           resource: image
   - name: deploy
+    runAfter: [build]
     taskRef:
       name: deploy
     resources:
       inputs:
-        - name: image
-          resource: image
+        - name: source
+          resource: source
         - name: pr
           resource: pr
-
   # - name: check-code
   #   taskRef:
   #     name: hello-world

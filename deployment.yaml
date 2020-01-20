@@ -35,20 +35,3 @@ items:
       targetPort: 8080
     selector:
       deployment: openshift-pipelines-demo-%SHA%
-
-- apiVersion: route.openshift.io/v1
-  kind: Route
-  metadata:
-    name: openshift-pipelines-demo-%SHA%
-  spec:
-    host: openshift-pipelines-demo-%SHA%-ci-openshift-pipelines.apps.chmouel.devcluster.openshift.com
-    port:
-      targetPort: 8080
-    tls:
-      insecureEdgeTerminationPolicy: Redirect
-      termination: edge
-    to:
-      kind: Service
-      name: openshift-pipelines-demo-%SHA%
-      weight: 100
-    wildcardPolicy: None
