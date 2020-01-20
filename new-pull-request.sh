@@ -13,22 +13,23 @@ randomword () {
 	sed "${randomn}q;d" /usr/share/dict/words
 }
 
-branch=pull-branch-$(random)
-randomword=$(random)
+word=$(randomword)
+branch=pull-branch-${word}
 git checkout -b $branch master
 
-echo $randomword > data/random.txt
+echo $word > data/random.txt
 
 cat > ${TMP} <<EOF
-Add random word $randomword
+Add random word $word
 
 We used to think that bird is the word but the best word in the world is
-$randomword
+$word
 
 EOF
 
 
-git commit data/random.txt
+git add data/random.txt
+git commit -F ${TMP} data/random.txt
 
-echo hub pull-request -F ${TMP} -p -b master -l random
+hub pull-request -F ${TMP} -p -b master -l random
 
