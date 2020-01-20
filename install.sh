@@ -21,7 +21,7 @@ oc project ${TARGET_NAMESPACE} 2>/dev/null >/dev/null || {
 }
 
 
-for task in buildah/buildah  openshift-client/openshift-client-task;do
+for task in buildah/buildah;do
             curl -Ls -f https://raw.githubusercontent.com/tektoncd/catalog/master/${task}.yaml | ${K} apply -f -
 done
 

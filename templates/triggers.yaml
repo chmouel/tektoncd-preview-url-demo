@@ -10,6 +10,8 @@ spec:
       default: master
     - name: gitrepositoryurl
       description: The git repository url
+    - name: pullrequrl
+      description: The git repository url
     - name: namespace
       description: The namespace to create the resources
   resourcetemplates:
@@ -19,6 +21,7 @@ spec:
         name: pipeline-simple-run-$(uid)
         namespace: $(params.namespace)
       spec:
+        serviceAccountName: ci-openshift-triggers-sa
         pipelineRef:
           name: simple
         resources:
@@ -35,7 +38,17 @@ spec:
               type: pullRequest
               params:
               - name: url
-                value: $(params.gitrepositoryurl)
+                value: $(params.pullrequrl)
+              secrets:
+              - fieldName: authToken
+                secretName: github-secret
+                secretKey: secretToken
+          - name: image
+            resourceSpec:
+              type: image
+              params:
+                - name: url
+                  value: image-registry.openshift-image-registry.svc.cluster.local:5000/$(params.namespace)/demo:$(params.gitrevision)
 
 ---
 apiVersion: tekton.dev/v1alpha1
@@ -44,12 +57,18 @@ metadata:
   name: simple-pipelinebinding
 spec:
   params:
-    - name: gitrevision
-      value: $(body.head_commit.id)
     - name: namespace
       value: ci-openshift-pipelines
+
+    - name: gitrevision
+      value: $(body.pull_request.head.sha)
+
     - name: gitrepositoryurl
       value: "https://github.com/$(body.repository.full_name)"
+
+    - name: pullrequrl
+      value: "https://github.com/$(body.pull_request.html_url)"
+
 ---
 apiVersion: tekton.dev/v1alpha1
 kind: EventListener

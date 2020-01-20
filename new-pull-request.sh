@@ -5,6 +5,8 @@ TMP=$(mktemp /tmp/.mm.XXXXXX)
 clean() { rm -f ${TMP}; }
 trap clean EXIT
 
+git branch -l|grep pull-branch|xargs -n1 git brand -D
+
 randomword () {
 	set -x
 	local total randomn
@@ -33,3 +35,4 @@ git commit -F ${TMP} html/random.txt
 
 hub pull-request -F ${TMP} -p -b master -l random
 
+git checkout mser
