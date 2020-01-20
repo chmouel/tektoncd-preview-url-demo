@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1alpha1
 kind: TriggerTemplate
 metadata:
-  name: simple-triggertemplate
+  name: preview-url-triggertemplate
 spec:
   params:
     - name: gitrevision
@@ -18,12 +18,12 @@ spec:
     - apiVersion: tekton.dev/v1alpha1
       kind: PipelineRun
       metadata:
-        name: pipeline-simple-run-$(uid)
+        name: pipeline-preview-url-run-$(uid)
         namespace: $(params.namespace)
       spec:
         serviceAccountName: ci-openshift-triggers-sa
         pipelineRef:
-          name: simple
+          name: preview-url
         resources:
           - name: source
             resourceSpec:
@@ -54,7 +54,7 @@ spec:
 apiVersion: tekton.dev/v1alpha1
 kind: TriggerBinding
 metadata:
-  name: simple-pipelinebinding
+  name: preview-url-pipelinebinding
 spec:
   params:
     - name: namespace
@@ -73,14 +73,14 @@ spec:
 apiVersion: tekton.dev/v1alpha1
 kind: EventListener
 metadata:
-  name: simple
+  name: preview-url
 spec:
   serviceAccountName: ci-openshift-triggers-sa
   triggers:
     - bindings:
-      - name: simple-pipelinebinding
+      - name: preview-url-pipelinebinding
       template:
-        name: simple-triggertemplate
+        name: preview-url-triggertemplate
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1

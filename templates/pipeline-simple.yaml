@@ -74,7 +74,7 @@ spec:
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
-  name: simple
+  name: preview-url
 spec:
   resources:
     - name: image

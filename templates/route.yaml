@@ -5,10 +5,10 @@ metadata:
   labels:
     app.kubernetes.io/managed-by: EventListener
     app.kubernetes.io/part-of: Triggers
-    eventlistener: simple
-  name: el-simple
+    eventlistener: preview-url
+  name: el-preview-url
 spec:
-  host: el-simple-ci-openshift-pipelines.apps.chmouel.devcluster.openshift.com
+  host: el-preview-url-ci-openshift-pipelines.apps.chmouel.devcluster.openshift.com
   port:
     targetPort: http-listener
   tls:
@@ -16,6 +16,6 @@ spec:
     termination: edge
   to:
     kind: Service
-    name: el-simple
+    name: el-preview-url
     weight: 100
   wildcardPolicy: None

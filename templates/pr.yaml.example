@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineRun
 metadata:
-  name: simple-run
+  name: preview-url-run
 spec:
   resources:
     - name: source
@@ -31,7 +31,7 @@ spec:
           - name: url
             value: image-registry.openshift-image-registry.svc.cluster.local:5000/ci-openshift-pipelines/demo:e0658cd251677bb01539e2377109face585f3484
   pipelineRef:
-    name: simple
+    name: preview-url
   serviceAccountName: ci-openshift-triggers-sa
 
 # Local Variables:
