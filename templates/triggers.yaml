@@ -22,12 +22,17 @@ spec:
         pipelineRef:
           name: simple
         resources:
-          - name: source-repo
+          - name: source
             resourceSpec:
               type: git
               params:
               - name: revision
                 value: $(params.gitrevision)
+              - name: url
+                value: $(params.gitrepositoryurl)
+          - name: pr
+            resourceSpec:
+              type: pullRequest
               - name: url
                 value: $(params.gitrepositoryurl)
 

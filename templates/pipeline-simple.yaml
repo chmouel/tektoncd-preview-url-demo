@@ -14,7 +14,7 @@ spec:
         type: pullRequest
   steps:
     - name: postback
-      image: registry.access.redhat.com/ubi8/ubi-minimal:latest
+      image: quay.io/openshift/origin-cli:latest
       script: |
         #!/usr/bin/env bash
         set -e
@@ -24,9 +24,11 @@ spec:
 
 
         sha=$(python -c "import json, sys;r = json.loads(sys.stdin.read());print(r['Sha'][1:7])" < $(inputs.resources.pr.path)/pr.json)
-        echo "Preview URL available at: https://$(oc get route openshift-pipelines-demo-${sha} -o jsonpath='{.spec.host}')" > \
-              $(outputs.resources.pr.path)/comments/new.json
+        cat >$(outputs.resources.pr.path)/comments/new.json << EOF
+        <b>Preview URL available at</b>: https://$(oc get route openshift-pipelines-demo-${sha} -o jsonpath='{.spec.host}')
 
+        <img width="200" src="https://picsum.photos/200/300"> <p/>
+        EOF
 
 ---
 apiVersion: tekton.dev/v1alpha1
@@ -98,9 +100,13 @@ spec:
           resource: pr
 
   - name: postback
+    runAfter: [deploy]
     taskRef:
       name: postback
     resources:
       inputs:
+        - name: pr
+          resource: pr
+      outputs:
         - name: pr
           resource: pr
