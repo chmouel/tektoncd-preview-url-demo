@@ -28,8 +28,8 @@ $word
 EOF
 
 
-git add data/random.txt
-git commit -F ${TMP} data/random.txt
+git add html/random.txt
+git commit -F ${TMP} html/random.txt
 
 hub pull-request -F ${TMP} -p -b master -l random
 
