@@ -22,12 +22,14 @@ spec:
         mkdir -p $(outputs.resources.pr.path)
         cp -r $(inputs.resources.pr.path)/* $(outputs.resources.pr.path)/
 
-
         sha=$(python -c "import json, sys;r = json.loads(sys.stdin.read());print(r['Sha'][1:7])" < $(inputs.resources.pr.path)/pr.json)
         cat >$(outputs.resources.pr.path)/comments/new.json << EOF
-        <b>Preview URL available at</b>: https://$(oc get route openshift-pipelines-demo-${sha} -o jsonpath='{.spec.host}')
+        <b>Preview your changes here</b>:<p/>
 
-        <img width="200" src="https://picsum.photos/200/300"> <p/>
+        https://$(oc get route openshift-pipelines-demo-${sha} -o jsonpath='{.spec.host}')
+
+        <i>And here is a beautiful picture:</i> </p>
+        <img src="https://picsum.photos/800/600"> </p>
         EOF
 
 ---
@@ -56,10 +58,16 @@ spec:
       oc delete -f <(sed "s/%SHA%/${sha}/g" deployment.yaml) 2>/dev/null || true
       oc create -f <(sed "s/%SHA%/${sha}/g" deployment.yaml)
 
-      # Add SSL
-      oc apply -f <(oc get route openshift-pipelines-demo-${sha}  -o json  | \
-       python -c "import json, sys;r = json.loads(sys.stdin.read());r['spec']['tls']={'insecureEdgeTerminationPolicy': 'Redirect', 'termination': 'edge'};print(json.dumps(r))")
-      echo "Preview URL available at: https://$(oc get route openshift-pipelines-demo-${sha} -o jsonpath='{.spec.host}')"
+      # Create route if not exist and add SSL
+      oc get route openshift-pipelines-demo-${sha} >/dev/null 2>/dev/null || {
+        oc expose service openshift-pipelines-demo-${sha}
+
+        oc apply -f <(oc get route openshift-pipelines-demo-${sha}  -o json  | \
+        python -c "import json, sys;r = json.loads(sys.stdin.read());r['spec']['tls']={'insecureEdgeTerminationPolicy': 'Redirect', 'termination': 'edge'};print(json.dumps(r))")
+      }
+
+      # Done and over with
+      echo "Preview your changes here: https://$(oc get route openshift-pipelines-demo-${sha} -o jsonpath='{.spec.host}')"
 
 ---
 apiVersion: tekton.dev/v1alpha1
