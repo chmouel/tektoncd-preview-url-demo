@@ -2,12 +2,10 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
-  name: post-back
+  name: postback
 spec:
   inputs:
     resources:
-    - name: source
-      type: git
     - name: pr
       type: pullRequest
   outputs:
@@ -15,7 +13,7 @@ spec:
       - name: pr
         type: pullRequest
   steps:
-    - name: hello
+    - name: postback
       image: registry.access.redhat.com/ubi8/ubi-minimal:latest
       script: |
         #!/usr/bin/env bash
@@ -24,7 +22,11 @@ spec:
         mkdir -p $(outputs.resources.pr.path)
         cp -r $(inputs.resources.pr.path)/* $(outputs.resources.pr.path)/
 
-        echo "Hello from pullRequest" > $(outputs.resources.pr.path)/comments/new.json
+
+        sha=$(python -c "import json, sys;r = json.loads(sys.stdin.read());print(r['Sha'][1:7])" < $(inputs.resources.pr.path)/pr.json)
+        echo "Preview URL available at: https://$(oc get route openshift-pipelines-demo-${sha} -o jsonpath='{.spec.host}')" > \
+              $(outputs.resources.pr.path)/comments/new.json
+
 
 ---
 apiVersion: tekton.dev/v1alpha1
@@ -44,11 +46,19 @@ spec:
     image: quay.io/openshift/origin-cli:latest
     script: |
       #!/usr/bin/env bash
-      set -xe
-      sha=$(python -c "import json, sys;r = json.loads(sys.stdin.read());print(r['Sha'][1:8])" < $(inputs.resources.pr.path)/pr.json)
+      set -eu
+      # Get SHA
+      sha=$(python -c "import json, sys;r = json.loads(sys.stdin.read());print(r['Sha'][1:7])" < $(inputs.resources.pr.path)/pr.json)
+
+      # Create Deployement
       oc delete -f <(sed "s/%SHA%/${sha}/g" deployment.yaml) 2>/dev/null || true
       oc create -f <(sed "s/%SHA%/${sha}/g" deployment.yaml)
-      sleep infinity
+
+      # Add SSL
+      oc apply -f <(oc get route openshift-pipelines-demo-${sha}  -o json  | \
+       python -c "import json, sys;r = json.loads(sys.stdin.read());r['spec']['tls']={'insecureEdgeTerminationPolicy': 'Redirect', 'termination': 'edge'};print(json.dumps(r))")
+      echo "Preview URL available at: https://$(oc get route openshift-pipelines-demo-${sha} -o jsonpath='{.spec.host}')"
+
 ---
 apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
@@ -86,12 +96,11 @@ spec:
           resource: source
         - name: pr
           resource: pr
-  # - name: check-code
-  #   taskRef:
-  #     name: hello-world
-  #   resources:
-  #     inputs:
-  #       - name: source-repo
-  #         resource: source-repo
-  #       - name: pr
-  #         resource: pr
+
+  - name: postback
+    taskRef:
+      name: postback
+    resources:
+      inputs:
+        - name: pr
+          resource: pr

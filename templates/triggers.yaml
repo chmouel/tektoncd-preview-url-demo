@@ -62,14 +62,18 @@ apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: ci-openshift-triggers-role
 rules:
-# Permissions for every EventListener deployment to function
 - apiGroups: ["tekton.dev"]
   resources: ["eventlisteners", "triggerbindings", "triggertemplates", "tasks", "taskruns"]
   verbs: ["get"]
 - apiGroups: [""]
-  resources: ["configmaps"]
-  verbs: ["get", "list", "watch"]
-# Permissions to create resources in associated TriggerTemplates
+  resources: ["configmaps", "services"]
+  verbs: ["get", "list", "watch", "delete", "create"]
+- apiGroups: ["extensions"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch", "delete", "create"]
+- apiGroups: ["route.openshift.io"]
+  resources: ["routes"]
+  verbs: ["get", "list", "watch", "delete", "create", "patch"]
 - apiGroups: ["tekton.dev"]
   resources: ["pipelineruns", "pipelineresources", "taskruns"]
   verbs: ["create"]

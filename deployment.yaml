@@ -9,6 +9,7 @@ items:
     name: openshift-pipelines-demo-%SHA%
     labels:
       deployment: openshift-pipelines-demo-%SHA%
+      generated: openshift-pipelines-sha
   spec:
     selector:
       matchLabels:
