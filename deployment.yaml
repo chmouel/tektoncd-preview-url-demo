@@ -6,28 +6,28 @@ items:
 - apiVersion: extensions/v1beta1
   kind: Deployment
   metadata:
-    name: openshift-pipelines-demo-%SHA%
+    name: openshift-pipelines-demo-%REVSHA%
     labels:
-      deployment: openshift-pipelines-demo-%SHA%
-      generated: openshift-pipelines-sha
+      deployment: openshift-pipelines-demo-%REVSHA%
+      generated: openshift-pipelines-demo
   spec:
     selector:
       matchLabels:
-        deployment: openshift-pipelines-demo-%SHA%
+        deployment: openshift-pipelines-demo-%REVSHA%
     template:
       metadata:
         labels:
-          deployment: openshift-pipelines-demo-%SHA%
+          deployment: openshift-pipelines-demo-%REVSHA%
       spec:
         containers:
-        - image: image-registry.openshift-image-registry.svc.cluster.local:5000/ci-openshift-pipelines/demo
+        - image: image-registry.openshift-image-registry.svc.cluster.local:5000/ci-openshift-pipelines/demo:%FULLREVSHA%
           name: web
 - apiVersion: v1
   kind: Service
   metadata:
     labels:
-      name: openshift-pipelines-demo-%SHA%
-    name: openshift-pipelines-demo-%SHA%
+      name: openshift-pipelines-demo-%REVSHA%
+    name: openshift-pipelines-demo-%REVSHA%
   spec:
     ports:
     - name: 8080-tcp
@@ -35,4 +35,4 @@ items:
       protocol: TCP
       targetPort: 8080
     selector:
-      deployment: openshift-pipelines-demo-%SHA%
+      deployment: openshift-pipelines-demo-%REVSHA%

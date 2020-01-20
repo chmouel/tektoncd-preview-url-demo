@@ -29,7 +29,7 @@ spec:
         type: image
         params:
           - name: url
-            value: image-registry.openshift-image-registry.svc.cluster.local:5000/ci-openshift-pipelines/demo
+            value: image-registry.openshift-image-registry.svc.cluster.local:5000/ci-openshift-pipelines/demo:a5b15274406dd5163e31d900d0b68d95b51d5d5c
   pipelineRef:
     name: simple
   serviceAccountName: ci-openshift-triggers-sa
