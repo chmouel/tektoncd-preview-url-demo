@@ -56,8 +56,8 @@ spec:
       fullsha=$(python -c "import json, sys;r = json.loads(sys.stdin.read());print(r['Sha'])" < $(inputs.resources.pr.path)/pr.json)
 
       # Create Deployement
-      oc delete -f <(sed -e "s/%FULLSHA%/${fullsha}/g" -e "s/%SHA%/${sha}/g" deployment.yaml) 2>/dev/null || true
-      oc create -f <(sed -e "s/%FULLSHA%/${fullsha}/g" -e "s/%SHA%/${sha}/g" deployment.yaml)
+      oc delete -f <(sed -e "s/%FULLSHA%/${fullsha}/g" -e "s/%SHA%/${sha}/g" templates/deployment.yaml) 2>/dev/null || true
+      oc create -f <(sed -e "s/%FULLSHA%/${fullsha}/g" -e "s/%SHA%/${sha}/g" templates/deployment.yaml)
 
       # Create route if not exist and add SSL
       oc get route openshift-pipelines-demo-${sha} >/dev/null 2>/dev/null || {
