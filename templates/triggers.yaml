@@ -33,6 +33,7 @@ spec:
           - name: pr
             resourceSpec:
               type: pullRequest
+              params:
               - name: url
                 value: $(params.gitrepositoryurl)
 
