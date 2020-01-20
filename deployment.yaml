@@ -1,0 +1,54 @@
+---
+apiVersion: v1
+kind: List
+metadata: {}
+items:
+- apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+    name: openshift-pipelines-demo-%SHA%
+    labels:
+      deployment: openshift-pipelines-demo-%SHA%
+  spec:
+    selector:
+      matchLabels:
+        deployment: openshift-pipelines-demo-%SHA%
+    template:
+      metadata:
+        labels:
+          deployment: openshift-pipelines-demo-%SHA%
+      spec:
+        containers:
+        - image: image-registry.openshift-image-registry.svc.cluster.local:5000/ci-openshift-pipelines/demo
+          name: web
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      name: openshift-pipelines-demo-%SHA%
+    name: openshift-pipelines-demo-%SHA%
+  spec:
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      deployment: openshift-pipelines-demo-%SHA%
+
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    name: openshift-pipelines-demo-%SHA%
+  spec:
+    host: openshift-pipelines-demo-%SHA%-ci-openshift-pipelines.apps.chmouel.devcluster.openshift.com
+    port:
+      targetPort: 8080
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    to:
+      kind: Service
+      name: openshift-pipelines-demo-%SHA%
+      weight: 100
+    wildcardPolicy: None

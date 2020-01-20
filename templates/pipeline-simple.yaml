@@ -1,11 +1,12 @@
+---
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
-  name: hello-world
+  name: post-back
 spec:
   inputs:
     resources:
-    - name: source-repo
+    - name: source
       type: git
     - name: pr
       type: pullRequest
@@ -27,25 +28,66 @@ spec:
 
 ---
 apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: deploy
+spec:
+  inputs:
+    resources:
+    - name: image
+      type: image
+    - name: pr
+      type: pullRequest
+  steps:
+  - name: deploy
+    image: quay.io/openshift/origin-cli:latest
+    script: |
+      #!/usr/bin/env bash
+      set -x
+      sleep infinity
+---
+apiVersion: tekton.dev/v1alpha1
 kind: Pipeline
 metadata:
   name: simple
 spec:
   resources:
+    - name: image
+      type: image
     - name: pr
       type: pullRequest
-    - name: source-repo
+    - name: source
       type: git
   tasks:
-  - name: check-code
+  - name: build
     taskRef:
-      name: hello-world
+      name: buildah
+    params:
+      - name: TLSVERIFY
+        value: "false"
     resources:
       inputs:
-        - name: source-repo
-          resource: source-repo
-        - name: pr
-          resource: pr
+        - name: source
+          resource: source
       outputs:
+        - name: image
+          resource: image
+  - name: deploy
+    taskRef:
+      name: deploy
+    resources:
+      inputs:
+        - name: image
+          resource: image
         - name: pr
           resource: pr
+
+  # - name: check-code
+  #   taskRef:
+  #     name: hello-world
+  #   resources:
+  #     inputs:
+  #       - name: source-repo
+  #         resource: source-repo
+  #       - name: pr
+  #         resource: pr

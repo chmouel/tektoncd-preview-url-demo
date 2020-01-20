@@ -1,0 +1,39 @@
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineRun
+metadata:
+  name: simple-run
+spec:
+  resources:
+    - name: source
+      resourceSpec:
+        type: git
+        params:
+          - name: revision
+            value: work
+          - name: url
+            value: https://github.com/chmouel/openshift-pipelines-e2e-demo
+    - name: pr
+      resourceSpec:
+        type: pullRequest
+        params:
+        - name: url
+          # I just picked a random PR. The first couple didn't have any interesting comments or labels.
+          value: https://github.com/chmouel/openshift-pipelines-e2e-demo/pull/6
+        secrets:
+          - fieldName: authToken
+            secretName: github-secret
+            secretKey: secretToken
+    - name: image
+      resourceSpec:
+        type: image
+        params:
+          - name: url
+            value: image-registry.openshift-image-registry.svc.cluster.local:5000/ci-openshift-pipelines/demo
+  pipelineRef:
+    name: simple
+  serviceAccountName: ci-openshift-triggers-sa
+
+# Local Variables:
+# mode: yaml
+# End:
