@@ -24,11 +24,11 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
 
-        - name: DASHBOARD_URL
+        - name: WEBCONSOLE_URL
           valueFrom:
             configMapKeyRef:
               name: demo-config
-              key: dashboard-url
+              key: webconsole-url
 
         - name: GITHUBTOKEN
           valueFrom:
@@ -41,20 +41,22 @@ spec:
         #!/usr/bin/env bash
         set -eu
         statusurl=$(python -c "import json, sys;j = json.loads(sys.stdin.read());r=j['Base']['Repo'];print('https://api.github.com/repos/%s/statuses/%s' % (r['FullName'], j['Sha']))" < $(inputs.resources.pr.path)/pr.json)
+        follow_url="${WEBCONSOLE_URL}/k8s/ns/${NS}/tekton.dev~v1alpha1~PipelineRun/${PR}"
+
         curl -f -s -o/dev/null -H "Content-Type: application/json" -H "Authorization: Bearer ${GITHUBTOKEN}" -X POST ${statusurl} -d "
         {
         \"state\": \"pending\",
-        \"target_url\": \"${DASHBOARD_URL}/#/namespaces/${NS}/pipelineruns/${PR}\",
+        \"target_url\": \"${follow_url}\",
         \"description\": \"The build has started!\",
         \"context\": \"continuous-integration/tektoncd-preview\"
         }"
-        
+
         randomgif=$(curl -s -L 'https://api.giphy.com/v1/gifs/search?api_key=dc6zaTOxFJmzC&q=build&rating=g&limit=10'|python -c "import json, random, sys;j = json.loads(sys.stdin.read());print(j['data'][random.randint(0,9)]['images']['fixed_height_downsampled']['url'])")
         mkdir -p $(outputs.resources.pr.path)
         cp -r $(inputs.resources.pr.path)/* $(outputs.resources.pr.path)/
 
         cat >$(outputs.resources.pr.path)/comments/new.json << EOF
-        🏗👷‍♂️ Follow me building your beautiful PR [here](${DASHBOARD_URL}/#/namespaces/${NS}/pipelineruns/${PR}).
+        🏗👷‍♂️ Follow me building your beautiful PR [here](${follow_url}).
 
         ![and now for something different](${randomgif})
         EOF
@@ -84,12 +86,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-
-        - name: DASHBOARD_URL
-          valueFrom:
-            configMapKeyRef:
-              name: demo-config
-              key: dashboard-url
 
         - name: GITHUBTOKEN
           valueFrom:
@@ -143,7 +139,7 @@ spec:
       #!/usr/bin/env bash
       set -eu
       # Get SHA
-      
+
       sha=$(python -c "import json, sys;r = json.loads(sys.stdin.read());print(r['Sha'][1:7])" < $(inputs.resources.pr.path)/pr.json)
       fullsha=$(python -c "import json, sys;r = json.loads(sys.stdin.read());print(r['Sha'])" < $(inputs.resources.pr.path)/pr.json)
 

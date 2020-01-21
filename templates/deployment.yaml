@@ -20,7 +20,7 @@ items:
           deployment: openshift-pipelines-demo-%SHA%
       spec:
         containers:
-        - image: image-registry.openshift-image-registry.svc.cluster.local:5000/ci-openshift-pipelines/demo:%FULLSHA%
+        - image: image-registry.openshift-image-registry.svc.cluster.local:5000/tekton-demo/demo:%FULLSHA%
           name: web
 - apiVersion: v1
   kind: Service

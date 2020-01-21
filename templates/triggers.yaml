@@ -58,7 +58,7 @@ metadata:
 spec:
   params:
     - name: namespace
-      value: ci-openshift-pipelines
+      value: tekton-demo
 
     - name: gitrevision
       value: $(body.pull_request.head.sha)

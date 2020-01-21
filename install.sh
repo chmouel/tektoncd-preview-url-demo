@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eu
 
-TARGET_NAMESPACE=ci-openshift-pipelines
+TARGET_NAMESPACE=tekton-demo
 K="kubectl -n ${TARGET_NAMESPACE}"
 O="oc -n ${TARGET_NAMESPACE}"
 GITHUB_TOKEN="$(git config --get github.oauth-token)"
@@ -29,7 +29,7 @@ ${K} get secret github-secret >/dev/null 2>/dev/null || {
 # General configuration
 ${K} get configmap demo-config >/dev/null 2>/dev/null || {
     ${K} create configmap demo-config \
-         --from-literal=dashboard-url="https://$(oc get route -n tekton-pipelines tekton-dashboard -o jsonpath='{.spec.host}')"
+         --from-literal=webconsole-url="https://$(oc get route -n openshift-console console -o jsonpath='{.spec.host}')"
 }
 
 for task in buildah/buildah;do
