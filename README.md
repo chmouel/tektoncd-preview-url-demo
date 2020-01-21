@@ -1,0 +1,31 @@
+# TektonCD Demo a preview URL on PR
+
+This will demo a preview URL for PR changes. 
+
+It installs a TektonCD Triggers Eventlistener to listen when new PR is created
+and deploy a PipelineRun which would :
+
+* build - build the Dockerfile
+* push - push the image to the openshfit internal registry
+* deploy - deploy the imge to its own deployment (suffixed with the git sha
+  commit of the change) and expose it publicaly with a route.
+* postback - will postback the comment back to the github PR.
+
+## Installs
+
+Install TektonCD Pipelines and Triggers.
+
+use the `install.sh` script on your cloud, it assumes you have your github token
+set in ``/.gitconfig` as :
+
+```ini
+[github]
+	oauth-token = TOKEN
+```
+
+Configure your webhook to push PR events to your eventlistenner route, get your endpoint url with :
+
+```shell
+https://$(oc get route el-preview-url -o jsonpath='{.spec.host}')
+```
+
