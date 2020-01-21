@@ -17,7 +17,7 @@ and deploy a PipelineRun which would :
 Install TektonCD Pipelines and Triggers.
 
 use the `install.sh` script on your cloud, it assumes you have your github token
-set in ``/.gitconfig` as :
+set in your `/.gitconfig` as :
 
 ```ini
 [github]
@@ -29,7 +29,6 @@ Configure your webhook to push PR events to your eventlistenner route, get your 
 ```shell
 https://$(oc get route el-preview-url -o jsonpath='{.spec.host}')
 ```
-
 
 ## Caveats
 
