@@ -36,9 +36,9 @@ for task in buildah/buildah;do
             curl -Ls -f https://raw.githubusercontent.com/tektoncd/catalog/master/${task}.yaml | ${K} apply -f -
 done
 
-oc adm policy add-scc-to-user privileged -z ci-openshift-triggers-sa
+oc adm policy add-scc-to-user privileged -z tekton-demo-triggers-sa
 for role in image-builder deployer;do
-    oc policy add-role-to-user system:${role} -z ci-openshift-triggers-sa
+    oc policy add-role-to-user system:${role} -z tekton-demo-triggers-sa
 done
 
 for file in templates/triggers.yaml templates/pipeline-preview-url.yaml;do

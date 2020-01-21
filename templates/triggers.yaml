@@ -21,7 +21,7 @@ spec:
         name: pipeline-preview-url-run-$(uid)
         namespace: $(params.namespace)
       spec:
-        serviceAccountName: ci-openshift-triggers-sa
+        serviceAccountName: tekton-demo-triggers-sa
         pipelineRef:
           name: preview-url
         resources:
@@ -75,7 +75,7 @@ kind: EventListener
 metadata:
   name: preview-url
 spec:
-  serviceAccountName: ci-openshift-triggers-sa
+  serviceAccountName: tekton-demo-triggers-sa
   triggers:
     - bindings:
       - name: preview-url-pipelinebinding
@@ -85,7 +85,7 @@ spec:
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: ci-openshift-triggers-role
+  name: tekton-demo-triggers-role
 rules:
 - apiGroups: ["tekton.dev"]
   resources: ["eventlisteners", "triggerbindings", "triggertemplates", "tasks", "taskruns"]
@@ -107,19 +107,19 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: ci-openshift-triggers-binding
+  name: tekton-demo-triggers-binding
 subjects:
 - kind: ServiceAccount
-  name: ci-openshift-triggers-sa
+  name: tekton-demo-triggers-sa
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: ci-openshift-triggers-role
+  name: tekton-demo-triggers-role
 
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: ci-openshift-triggers-sa
+  name: tekton-demo-triggers-sa
 secrets:
   - name: github-secret

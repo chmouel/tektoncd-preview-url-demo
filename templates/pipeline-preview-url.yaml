@@ -101,7 +101,7 @@ spec:
         cp -r $(inputs.resources.pr.path)/* $(outputs.resources.pr.path)/
 
         sha=$(python -c "import json, sys;r = json.loads(sys.stdin.read());print(r['Sha'][1:7])" < $(inputs.resources.pr.path)/pr.json)
-        previewurl=https://$(oc get route openshift-pipelines-demo-${sha} -o jsonpath='{.spec.host}')
+        previewurl=https://$(oc get route tekton-demo-${sha} -o jsonpath='{.spec.host}')
         statusurl=$(python -c "import json, sys;j = json.loads(sys.stdin.read());r=j['Base']['Repo'];print('https://api.github.com/repos/%s/statuses/%s' % (r['FullName'], j['Sha']))" < $(inputs.resources.pr.path)/pr.json)
         curl -f -s -o/dev/null -H "Content-Type: application/json" -H "Authorization: Bearer ${GITHUBTOKEN}" -X POST ${statusurl} -d "
         {
@@ -148,15 +148,15 @@ spec:
       oc create -f <(sed -e "s/%FULLSHA%/${fullsha}/g" -e "s/%SHA%/${sha}/g" templates/deployment.yaml)
 
       # Create route if not exist and add SSL
-      oc get route openshift-pipelines-demo-${sha} >/dev/null 2>/dev/null || {
-        oc expose service openshift-pipelines-demo-${sha}
+      oc get route tekton-demo-${sha} >/dev/null 2>/dev/null || {
+        oc expose service tekton-demo-${sha}
 
-        oc apply -f <(oc get route openshift-pipelines-demo-${sha}  -o json  | \
+        oc apply -f <(oc get route tekton-demo-${sha}  -o json  | \
         python -c "import json, sys;r = json.loads(sys.stdin.read());r['spec']['tls']={'insecureEdgeTerminationPolicy': 'Redirect', 'termination': 'edge'};print(json.dumps(r))")
       }
 
       # Done and over with
-      echo "Preview your changes here: https://$(oc get route openshift-pipelines-demo-${sha} -o jsonpath='{.spec.host}')"
+      echo "Preview your changes here: https://$(oc get route tekton-demo-${sha} -o jsonpath='{.spec.host}')"
 
 ---
 apiVersion: tekton.dev/v1alpha1

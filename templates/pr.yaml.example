@@ -32,7 +32,7 @@ spec:
             value: image-registry.openshift-image-registry.svc.cluster.local:5000/tekton-demo/demo:e0658cd251677bb01539e2377109face585f3484
   pipelineRef:
     name: preview-url
-  serviceAccountName: ci-openshift-triggers-sa
+  serviceAccountName: tekton-demo-triggers-sa
 
 # Local Variables:
 # mode: yaml

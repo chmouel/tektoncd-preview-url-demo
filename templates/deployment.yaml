@@ -6,18 +6,18 @@ items:
 - apiVersion: extensions/v1beta1
   kind: Deployment
   metadata:
-    name: openshift-pipelines-demo-%SHA%
+    name: tekton-demo-%SHA%
     labels:
-      deployment: openshift-pipelines-demo-%SHA%
-      generated: openshift-pipelines-sha
+      deployment: tekton-demo-%SHA%
+      generated: tekton-demo-sha
   spec:
     selector:
       matchLabels:
-        deployment: openshift-pipelines-demo-%SHA%
+        deployment: tekton-demo-%SHA%
     template:
       metadata:
         labels:
-          deployment: openshift-pipelines-demo-%SHA%
+          deployment: tekton-demo-%SHA%
       spec:
         containers:
         - image: image-registry.openshift-image-registry.svc.cluster.local:5000/tekton-demo/demo:%FULLSHA%
@@ -26,8 +26,8 @@ items:
   kind: Service
   metadata:
     labels:
-      name: openshift-pipelines-demo-%SHA%
-    name: openshift-pipelines-demo-%SHA%
+      name: tekton-demo-%SHA%
+    name: tekton-demo-%SHA%
   spec:
     ports:
     - name: 8080-tcp
@@ -35,4 +35,4 @@ items:
       protocol: TCP
       targetPort: 8080
     selector:
-      deployment: openshift-pipelines-demo-%SHA%
+      deployment: tekton-demo-%SHA%
