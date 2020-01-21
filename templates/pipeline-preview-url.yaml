@@ -2,7 +2,7 @@
 apiVersion: tekton.dev/v1alpha1
 kind: Task
 metadata:
-  name: postback
+  name: comment-first
 spec:
   inputs:
     resources:
@@ -13,23 +13,114 @@ spec:
       - name: pr
         type: pullRequest
   steps:
-    - name: postback
+    - name: comment-first
+      env:
+        - name: PR
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tekton.dev/pipelineRun']
+        - name: NS
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+
+        - name: DASHBOARD_URL
+          valueFrom:
+            configMapKeyRef:
+              name: demo-config
+              key: dashboard-url
+
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              key: secretToken
+              name: github-secret
+
       image: quay.io/openshift/origin-cli:latest
       script: |
         #!/usr/bin/env bash
-        set -e
+        set -eu
+        statusurl=$(python -c "import json, sys;j = json.loads(sys.stdin.read());r=j['Base']['Repo'];print('https://api.github.com/repos/%s/statuses/%s' % (r['FullName'], j['Sha']))" < $(inputs.resources.pr.path)/pr.json)
+        curl -f -s -o/dev/null -H "Content-Type: application/json" -H "Authorization: Bearer ${GITHUBTOKEN}" -X POST ${statusurl} -d "
+        {
+        \"state\": \"pending\",
+        \"target_url\": \"${DASHBOARD_URL}/#/namespaces/${NS}/pipelineruns/${PR}\",
+        \"description\": \"The build has started!\",
+        \"context\": \"continuous-integration/tektoncd-preview\"
+        }"
+        
+        randomgif=$(curl -s -L 'https://api.giphy.com/v1/gifs/search?api_key=dc6zaTOxFJmzC&q=build&rating=g&limit=10'|python -c "import json, random, sys;j = json.loads(sys.stdin.read());print(j['data'][random.randint(0,9)]['images']['fixed_height_downsampled']['url'])")
+        mkdir -p $(outputs.resources.pr.path)
+        cp -r $(inputs.resources.pr.path)/* $(outputs.resources.pr.path)/
+
+        cat >$(outputs.resources.pr.path)/comments/new.json << EOF
+        🏗👷‍♂️ Follow me building your beautiful PR [here](${DASHBOARD_URL}/#/namespaces/${NS}/pipelineruns/${PR}).
+
+        ![and now for something different](${randomgif})
+        EOF
+
+---
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: comment-last
+spec:
+  inputs:
+    resources:
+    - name: pr
+      type: pullRequest
+  outputs:
+    resources:
+      - name: pr
+        type: pullRequest
+  steps:
+    - name: comment-last
+      env:
+        - name: PR
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tekton.dev/pipelineRun']
+        - name: NS
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+
+        - name: DASHBOARD_URL
+          valueFrom:
+            configMapKeyRef:
+              name: demo-config
+              key: dashboard-url
+
+        - name: GITHUBTOKEN
+          valueFrom:
+            secretKeyRef:
+              key: secretToken
+              name: github-secret
+      image: quay.io/openshift/origin-cli:latest
+      script: |
+        #!/usr/bin/env bash
+        set -eu
 
         mkdir -p $(outputs.resources.pr.path)
         cp -r $(inputs.resources.pr.path)/* $(outputs.resources.pr.path)/
 
         sha=$(python -c "import json, sys;r = json.loads(sys.stdin.read());print(r['Sha'][1:7])" < $(inputs.resources.pr.path)/pr.json)
+        previewurl=https://$(oc get route openshift-pipelines-demo-${sha} -o jsonpath='{.spec.host}')
+        statusurl=$(python -c "import json, sys;j = json.loads(sys.stdin.read());r=j['Base']['Repo'];print('https://api.github.com/repos/%s/statuses/%s' % (r['FullName'], j['Sha']))" < $(inputs.resources.pr.path)/pr.json)
+        curl -f -s -o/dev/null -H "Content-Type: application/json" -H "Authorization: Bearer ${GITHUBTOKEN}" -X POST ${statusurl} -d "
+        {
+        \"state\": \"success\",
+        \"target_url\": \"${previewurl}\",
+        \"description\": \"Preview URL has been generated!\",
+        \"context\": \"continuous-integration/tektoncd-preview\"
+        }"
+
+        randomgif=$(curl -s -L 'https://api.giphy.com/v1/gifs/search?api_key=dc6zaTOxFJmzC&q=cat&rating=g&limit=10'|python -c "import json, random, sys;j = json.loads(sys.stdin.read());print(j['data'][random.randint(0,9)]['images']['fixed_height_downsampled']['url'])")
+
         cat >$(outputs.resources.pr.path)/comments/new.json << EOF
-        <b>Preview your changes here</b>:<p/>
+        🕺👀 Preview your PR [here](${previewurl})
 
-        https://$(oc get route openshift-pipelines-demo-${sha} -o jsonpath='{.spec.host}')
-
-        <i>And here is a beautiful picture:</i> </p>
-        <img src="https://picsum.photos/800/600"> </p>
+        ![and now for something different](${randomgif})
         EOF
 
 ---
@@ -52,6 +143,7 @@ spec:
       #!/usr/bin/env bash
       set -eu
       # Get SHA
+      
       sha=$(python -c "import json, sys;r = json.loads(sys.stdin.read());print(r['Sha'][1:7])" < $(inputs.resources.pr.path)/pr.json)
       fullsha=$(python -c "import json, sys;r = json.loads(sys.stdin.read());print(r['Sha'])" < $(inputs.resources.pr.path)/pr.json)
 
@@ -83,10 +175,23 @@ spec:
       type: pullRequest
     - name: source
       type: git
+
   tasks:
+  - name: comment-first
+    taskRef:
+      name: comment-first
+    resources:
+      inputs:
+        - name: pr
+          resource: pr
+      outputs:
+        - name: pr
+          resource: pr
+
   - name: build
     taskRef:
       name: buildah
+    runAfter: [comment-first]
     params:
       - name: TLSVERIFY
         value: "false"
@@ -97,6 +202,7 @@ spec:
       outputs:
         - name: image
           resource: image
+
   - name: deploy
     runAfter: [build]
     taskRef:
@@ -108,10 +214,10 @@ spec:
         - name: pr
           resource: pr
 
-  - name: postback
+  - name: comment-last
     runAfter: [deploy]
     taskRef:
-      name: postback
+      name: comment-last
     resources:
       inputs:
         - name: pr
