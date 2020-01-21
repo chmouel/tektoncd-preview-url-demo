@@ -35,3 +35,9 @@ https://$(oc get route el-preview-url -o jsonpath='{.spec.host}')
 
 * No failure handling
 * No cleanups ! (Can run out of resources quite quickly)
+
+## Contacts
+
+[@chmouel](https://twitter.com/chmouel)
+
+![and now for something different](https://media0.giphy.com/media/3nbxypT20Ulmo/200_d.gif?cid=e1bb72ff6a16e0ad362f8fe5c3e3d3dd9d53bfcf0bfe8570&rid=200_d.gif)
