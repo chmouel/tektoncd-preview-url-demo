@@ -39,3 +39,8 @@ for file in templates/triggers.yaml templates/pipeline-preview-url.yaml;do
     kubectl create -f ${file}
 done
 
+oc get route el-preview-url 2>/dev/null >/dev/null || {
+    oc expose service el-preview-url && oc apply -f <(oc get route el-preview-url  -o json |jq -r '.spec |= . + {tls: {"insecureEdgeTerminationPolicy": "Redirect", "termination": "edge"}}')
+}
+
+echo "Webhook Endpoint available at: https://$(oc get route el-preview-url -o jsonpath='{.spec.host}')"
