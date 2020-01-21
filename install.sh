@@ -2,8 +2,8 @@
 set -eu
 
 TARGET_NAMESPACE=ci-openshift-pipelines
-
 K="kubectl -n ${TARGET_NAMESPACE}"
+GITHUB_TOKEN="$(git config --get github.oauth-token)"
 
 config_params() {
     if [[ -d $1 ]];then
@@ -20,6 +20,10 @@ oc project ${TARGET_NAMESPACE} 2>/dev/null >/dev/null || {
 	oc new-project ${TARGET_NAMESPACE} >/dev/null
 }
 
+${K} get secret github-secret >/dev/null 2>/dev/null || {
+    echo -e "------ \e[96mCreating GitHUB Secret}\e[0m"
+    oc create secret generic github-secret --from-literal secretToken="${GITHUB_TOKEN}"
+}
 
 for task in buildah/buildah;do
             curl -Ls -f https://raw.githubusercontent.com/tektoncd/catalog/master/${task}.yaml | ${K} apply -f -
