@@ -30,7 +30,7 @@ for role in image-builder deployer;do
     oc policy add-role-to-user system:${role} -z ci-openshift-triggers-sa
 done
 
-for file in templates/*.yaml;do
+for file in templates/triggers.yaml templates/pipeline-preview-url.yaml;do
     kubectl delete -f  ${file} 2>/dev/null || true
     kubectl create -f ${file}
 done
