@@ -3,6 +3,7 @@ set -eu
 
 TARGET_NAMESPACE=ci-openshift-pipelines
 K="kubectl -n ${TARGET_NAMESPACE}"
+O="oc -n ${TARGET_NAMESPACE}"
 GITHUB_TOKEN="$(git config --get github.oauth-token)"
 
 config_params() {
@@ -15,14 +16,20 @@ config_params() {
 }
 
 
+# Create Project where we are going to work on
 oc project ${TARGET_NAMESPACE} 2>/dev/null >/dev/null || {
-    echo -e "------ \e[96mCreating Project: ${TARGET_NAMESPACE}\e[0m"
 	oc new-project ${TARGET_NAMESPACE} >/dev/null
 }
 
+# Create Github Secret
 ${K} get secret github-secret >/dev/null 2>/dev/null || {
-    echo -e "------ \e[96mCreating GitHUB Secret}\e[0m"
-    oc create secret generic github-secret --from-literal secretToken="${GITHUB_TOKEN}"
+    ${K} create secret generic github-secret --from-literal secretToken="${GITHUB_TOKEN}"
+}
+
+# General configuration
+${K} get configmap demo-config >/dev/null 2>/dev/null || {
+    ${K} create configmap demo-config \
+         --from-literal=dashboard-url="https://$(oc get route -n tekton-pipelines tekton-dashboard -o jsonpath='{.spec.host}')"
 }
 
 for task in buildah/buildah;do
@@ -35,12 +42,13 @@ for role in image-builder deployer;do
 done
 
 for file in templates/triggers.yaml templates/pipeline-preview-url.yaml;do
-    kubectl delete -f  ${file} 2>/dev/null || true
-    kubectl create -f ${file}
+    ${K} delete -f  ${file} 2>/dev/null || true
+    ${K} create -f ${file}
 done
 
-oc get route el-preview-url 2>/dev/null >/dev/null || {
-    oc expose service el-preview-url && oc apply -f <(oc get route el-preview-url  -o json |jq -r '.spec |= . + {tls: {"insecureEdgeTerminationPolicy": "Redirect", "termination": "edge"}}')
+
+${O} get route el-preview-url 2>/dev/null >/dev/null || {
+    ${O} expose service el-preview-url && oc apply -f <(${O} get route el-preview-url  -o json |jq -r '.spec |= . + {tls: {"insecureEdgeTerminationPolicy": "Redirect", "termination": "edge"}}')
 }
 
-echo "Webhook Endpoint available at: https://$(oc get route el-preview-url -o jsonpath='{.spec.host}')"
+echo "Webhook Endpoint available at: https://$(${O} get route el-preview-url -o jsonpath='{.spec.host}')"
