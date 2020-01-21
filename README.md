@@ -6,7 +6,7 @@ It installs a TektonCD Triggers Eventlistener to listen when new PR is created
 and deploy a PipelineRun which would :
 
 * comment-first: Set GitHUB Status and give a Tekton-Dashboard URL to follow the build
-* build - build the Dockerfile, which has a simple web server based on [echo](https://echo.labstack.com/)  to server the static files.
+* build - build the Dockerfile, which has a simple golang web server based on [echo](https://echo.labstack.com/)  to server the static files.
 * push - push the image to the openshfit internal registry
 * deploy - deploy the imge to its own deployment (suffixed with the git sha
   commit of the change) and expose it publicaly with a route.
