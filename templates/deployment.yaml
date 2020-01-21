@@ -9,7 +9,7 @@ items:
     name: tekton-demo-%SHA%
     labels:
       deployment: tekton-demo-%SHA%
-      generated: tekton-demo-sha
+      generated: tekton-demo
   spec:
     selector:
       matchLabels:
@@ -26,7 +26,7 @@ items:
   kind: Service
   metadata:
     labels:
-      name: tekton-demo-%SHA%
+      generated: tekton-demo
     name: tekton-demo-%SHA%
   spec:
     ports:

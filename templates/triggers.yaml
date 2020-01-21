@@ -18,6 +18,8 @@ spec:
     - apiVersion: tekton.dev/v1alpha1
       kind: PipelineRun
       metadata:
+        labels:
+          generated: tekton-demo
         name: pipeline-preview-url-run-$(uid)
         namespace: $(params.namespace)
       spec:
