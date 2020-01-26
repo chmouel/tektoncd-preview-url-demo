@@ -79,10 +79,14 @@ metadata:
 spec:
   serviceAccountName: tekton-demo-triggers-sa
   triggers:
-    - bindings:
-      - name: preview-url-pipelinebinding
-      template:
-        name: preview-url-triggertemplate
+  - name: preview-url-pipelinebindings
+    interceptors:
+    - cel:
+        filter: "header.match('X-GitHub-Event', 'pull_request')"
+    bindings:
+    - name: preview-url-pipelinebinding
+    template:
+      name: preview-url-triggertemplate
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1

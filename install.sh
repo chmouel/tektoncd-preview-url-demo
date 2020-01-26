@@ -6,14 +6,6 @@ K="kubectl -n ${TARGET_NAMESPACE}"
 O="oc -n ${TARGET_NAMESPACE}"
 GITHUB_TOKEN="$(git config --get github.oauth-token)"
 
-config_params() {
-    if [[ -d $1 ]];then
-        files=(${1}/*.yaml)
-    else
-        files=($1)
-    fi
-
-}
 
 
 # Create Project where we are going to work on
